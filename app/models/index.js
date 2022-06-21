@@ -15,9 +15,6 @@ const sequelize = new Sequelize(
       acquire: config.pool.acquire,
       idle: config.pool.idle,
     },
-    dialectOptions: {
-      ssl: true,
-    },
   },
 );
 
