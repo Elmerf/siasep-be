@@ -2,11 +2,8 @@ const Sequelize = require('sequelize');
 const config = require('../configs/db.config');
 
 const sequelize = new Sequelize(
-  config.DB,
-  config.USER,
-  config.PASSWORD,
+  process.env.DATABASE_URL,
   {
-    host: config.HOST,
     dialect: config.dialect,
     operatorsAliases: false,
     pool: {
@@ -14,6 +11,12 @@ const sequelize = new Sequelize(
       min: config.pool.min,
       acquire: config.pool.acquire,
       idle: config.pool.idle,
+    },
+    dialectOptions: {
+      ssl: {
+        require: true,
+        rejectUnauthorized: false,
+      },
     },
   },
 );
