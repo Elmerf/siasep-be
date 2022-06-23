@@ -1,5 +1,4 @@
 require('dotenv').config();
-const serverless = require('serverless-http');
 const express = require('express');
 const cors = require('cors');
 const { default: fetch } = require('node-fetch');
@@ -20,14 +19,14 @@ app.use(json2xls.middleware);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-const db = require('./app/models');
-const { categories } = require('./app/utils/helper.utils');
+const db = require('../app/models');
+const { categories } = require('../app/utils/helper.utils');
 
 db.sequelize.sync().then(() => {
   console.log('Drop & Re-sync db.');
 });
 
-const { checkTokenValid, checkFileExisted } = require('./app/middlewares/auth.middleware');
+const { checkTokenValid, checkFileExisted } = require('../app/middlewares/auth.middleware');
 
 app.get('/', checkFileExisted, checkTokenValid, async (req, res) => {
   try {
@@ -92,11 +91,11 @@ app.get('/categories', async (req, res) => {
   res.send(data);
 });
 
-require('./app/routes')(app);
+require('../app/routes')(app);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`this server is running on port ${PORT}`);
 });
 
-module.exports.handler = serverless(app);
+module.exports = app;
