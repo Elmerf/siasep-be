@@ -25,9 +25,9 @@ db.sequelize.sync().then(() => {
   console.log('Drop & Re-sync db.');
 });
 
-const { checkTokenValid } = require('./app/middlewares/auth.middleware');
+const { checkTokenValid, checkFileExisted } = require('./app/middlewares/auth.middleware');
 
-app.get('/', checkTokenValid, async (req, res) => {
+app.get('/', checkFileExisted, checkTokenValid, async (req, res) => {
   try {
     res.send('Hello!');
   } catch (err) {
