@@ -35,25 +35,26 @@ exports.checkSessionUUID = async (req, res, next) => {
   try {
     const { username = '', session_id = '' } = req.cookies;
 
-    if (!username || !session_id) return res.status(401).send({ msg: 'Unauthorized!' });
+    if (!username || !session_id) res.status(401).send({ msg: 'Unauthorized!' });
+    else {
+      const result = await session.findOne({
+        where: {
+          username,
+          session_id,
+        },
+        raw: true,
+      });
 
-    const result = await session.findOne({
-      where: {
-        username,
-        session_id,
-      },
-      raw: true,
-    });
-
-    if (!result) { return res.status(401).send({ msg: 'Login terlebih dahulu' }); }
-    if (result.expired_date < Date.now()) {
-      session.destroy({ where: { username } });
-      return res.status(401).send({ msg: 'Session habis' });
+      if (!result) { res.status(401).send({ msg: 'Login terlebih dahulu' }); }
+      else if (result.expired_date < Date.now()) {
+        session.destroy({ where: { username } });
+        res.status(401).send({ msg: 'Session habis' });
+      } else {
+        next();
+      }
     }
-
-    return next();
   } catch (err) {
     console.log(err);
-    return res.status(500).send(err);
+    res.status(500).send(err);
   }
 };
