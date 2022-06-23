@@ -9,6 +9,7 @@ const cookieParser = require('cookie-parser');
 const app = express();
 const corsOptions = {
   origin: ['http://localhost:8080', 'http://192.168.1.10:8080', 'https://siasep-ui.vercel.app', 'https://siasep-ui-elmerf.vercel.app'],
+  method: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   credentials: true,
 };
 
@@ -17,6 +18,8 @@ app.use(json2xls.middleware);
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+app.options('*', cors(corsOptions));
 
 const db = require('./app/models');
 const { categories } = require('./app/utils/helper.utils');
