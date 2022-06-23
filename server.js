@@ -19,7 +19,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 const db = require('./app/models');
-// const { categories } = require('./app/utils/helper.utils');
+const { categories } = require('./app/utils/helper.utils');
 
 db.sequelize.sync().then(() => {
   console.log('Drop & Re-sync db.');
@@ -85,10 +85,10 @@ app.get('/token', async (req, res) => {
   }
 });
 
-// app.get('/categories', async (req, res) => {
-//   const data = await categories;
-//   res.send(data);
-// });
+app.get('/categories', async (req, res) => {
+  const data = await categories;
+  res.send(data);
+});
 
 require('./app/routes')(app);
 

@@ -4,14 +4,14 @@
 const { Op } = require('sequelize');
 const { tipe, surat } = require('../models');
 
-// exports.categories = tipe.findAll({ order: [['tipe_surat', 'DESC'], ['sub_surat', 'ASC']] }).then((data) => {
-//   const result = data.reduce((current, value) => {
-//     current[value.tipe_surat] = current[value.tipe_surat] || [];
-//     current[value.tipe_surat].push({ id: value.id, sub_surat: value.sub_surat });
-//     return current;
-//   }, {});
-//   return result;
-// });
+exports.categories = tipe.findAll({ order: [['tipe_surat', 'DESC'], ['sub_surat', 'ASC']] }).then((data) => {
+  const result = data.reduce((current, value) => {
+    current[value.tipe_surat] = current[value.tipe_surat] || [];
+    current[value.tipe_surat].push({ id: value.id, sub_surat: value.sub_surat });
+    return current;
+  }, {});
+  return result;
+});
 
 // eslint-disable-next-line camelcase
 exports.getAutomatedNomor = async (jenis_surat, tipe_surat) => {

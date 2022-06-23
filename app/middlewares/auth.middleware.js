@@ -12,8 +12,9 @@ exports.checkFileExisted = (req, res, next) => {
     url.searchParams.append('login_hint', process.env.LOGIN_HINT);
     url.searchParams.append('redirect_uri', process.env.REDIRECT_URI);
     res.redirect(url);
+  } else {
+    next();
   }
-  next();
 };
 
 exports.checkTokenValid = async (req, res, next) => {
@@ -23,8 +24,9 @@ exports.checkTokenValid = async (req, res, next) => {
       if ((Date.now() - token.ctime) / 1000 > 3600) {
         await fetch('http://localhost:3000/token');
       }
+    } else {
+      next();
     }
-    next();
   } catch (err) {
     console.log(err);
   }
