@@ -31,30 +31,29 @@ exports.checkTokenValid = async (req, res, next) => {
   }
 };
 
+// eslint-disable-next-line consistent-return
 exports.checkSessionUUID = async (req, res, next) => {
   try {
     const { username = '', session_id = '' } = req.cookies;
 
-    if (!username || !session_id) res.status(401).send({ msg: 'Unauthorized!' });
-    else {
-      const result = await session.findOne({
-        where: {
-          username,
-          session_id,
-        },
-        raw: true,
-      });
+    if (!username || !session_id) return res.status(401).send({ msg: 'Unauthorized!' });
 
-      if (!result) { res.status(401).send({ msg: 'Login terlebih dahulu' }); }
-      else if (result.expired_date < Date.now()) {
-        session.destroy({ where: { username } });
-        res.status(401).send({ msg: 'Session habis' });
-      } else {
-        next();
-      }
+    const result = await session.findOne({
+      where: {
+        username,
+        session_id,
+      },
+      raw: true,
+    });
+
+    if (!result) { res.status(401).send({ msg: 'Login terlebih dahulu' }); } else if (result.expired_date < Date.now()) {
+      session.destroy({ where: { username } });
+      return res.status(401).send({ msg: 'Session habis' });
+    } else {
+      next();
     }
   } catch (err) {
     console.log(err);
-    res.status(500).send(err);
+    return res.status(500).send(err);
   }
 };
