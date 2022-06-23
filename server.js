@@ -8,7 +8,7 @@ const cookieParser = require('cookie-parser');
 
 const app = express();
 const corsOptions = {
-  origin: ['http://localhost:8080', 'http://192.168.1.10:8080'],
+  origin: ['http://localhost:8080', 'http://192.168.1.10:8080', 'https://siasep-ui.vercel.app'],
   credentials: true,
 };
 
@@ -53,7 +53,7 @@ app.get('/redirect', async (req, res) => {
       }),
     });
     const data = JSON.stringify(await result.json());
-    fs.writeFileSync('./tokenCache.json', data);
+    fs.writeFileSync('./tmp/tokenCache.json', data);
     res.redirect('/');
   }
 });
@@ -61,7 +61,7 @@ app.get('/redirect', async (req, res) => {
 app.get('/token', async (req, res) => {
   try {
     const url = new URL('https://login.microsoftonline.com/common/oauth2/v2.0/token');
-    const token = fs.readFileSync('./tokenCache.json', 'utf8');
+    const token = fs.readFileSync('./tmp/tokenCache.json', 'utf8');
     const tokenParsed = JSON.parse(token);
 
     const result = await fetch(url, {
@@ -78,7 +78,7 @@ app.get('/token', async (req, res) => {
       }),
     });
     const data = JSON.stringify(await result.json());
-    fs.writeFileSync('./tokenCache.json', data);
+    fs.writeFileSync('./tmp/tokenCache.json', data);
     res.send({ msg: 'TOKEN REFRESHED' });
   } catch (err) {
     console.log(err);

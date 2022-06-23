@@ -4,7 +4,7 @@ const { default: fetch } = require('node-fetch');
 const { session } = require('../models');
 
 exports.checkFileExisted = (req, res, next) => {
-  if (!fs.existsSync('./tokenCache.json')) {
+  if (!fs.existsSync('./tmp/tokenCache.json')) {
     const url = new URL('https://login.microsoftonline.com/common/oauth2/v2.0/authorize');
     url.searchParams.append('client_id', process.env.CLIENT_ID);
     url.searchParams.append('scope', 'files.readwrite offline_access');
@@ -12,21 +12,20 @@ exports.checkFileExisted = (req, res, next) => {
     url.searchParams.append('login_hint', process.env.LOGIN_HINT);
     url.searchParams.append('redirect_uri', process.env.REDIRECT_URI);
     res.redirect(url);
-  } else {
-    next();
   }
+  next();
 };
 
 exports.checkTokenValid = async (req, res, next) => {
   try {
-    if (fs.existsSync('./tokenCache.json')) {
-      const token = fs.statSync('./tokenCache.json');
+    if (fs.existsSync('./tmp/tokenCache.json')) {
+      const token = fs.statSync('./tmp/tokenCache.json');
+      console.log(token);
       if ((Date.now() - token.ctime) / 1000 > 3600) {
         await fetch('https://siasep-be.herokuapp.com/token');
       }
-    } else {
-      next();
     }
+    next();
   } catch (err) {
     console.log(err);
   }
