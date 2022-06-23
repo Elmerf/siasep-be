@@ -8,7 +8,7 @@ const cookieParser = require('cookie-parser');
 
 const app = express();
 const corsOptions = {
-  origin: ['http://localhost:8080', 'http://192.168.1.10:8080', 'https://siasep-ui.vercel.app'],
+  origin: ['http://localhost:8080', 'http://192.168.1.10:8080', 'https://siasep-ui.vercel.app', 'https://siasep-ui-elmerf.vercel.app'],
   credentials: true,
 };
 
