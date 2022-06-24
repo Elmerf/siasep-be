@@ -9,7 +9,7 @@ const { keys } = require('../utils/suratKeys');
 const msGraph = 'https://graph.microsoft.com/v1.0';
 
 const tokenParsed = async () => {
-  const token = await fs.readFile('./tmp/tokenCache.json');
+  const token = await fs.readFile('../../tmp/tokenCache.json');
   return JSON.parse(token);
 };
 
@@ -88,7 +88,7 @@ exports.home = async (req, res) => {
       attributes: ['tipe_surat'],
     },
     attributes: [[sequelize.fn('count', 'surat.nomor_surat'), 'jumlah_surat']],
-    group: ['tipe.tipe_surat', 'tipe.id'],
+    group: 'tipe.tipe_surat',
   });
   res.send(count);
 };
