@@ -128,3 +128,4 @@ dist
 tokenCache.json
 
 .vercel
+vercel.json

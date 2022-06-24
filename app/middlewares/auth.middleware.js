@@ -21,7 +21,7 @@ exports.checkTokenValid = async (req, res, next) => {
     if (fs.existsSync('../../tmp/tokenCache.json')) {
       const token = fs.statSync('../../tmp/tokenCache.json');
       if ((Date.now() - token.ctime) / 1000 > 3600) {
-        await fetch('https://siasep-be.herokuapp.com/token');
+        await fetch('https://api.siasep.my.id/token');
       }
     }
     next();
