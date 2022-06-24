@@ -3,6 +3,7 @@
 // } = JSON.parse(process.env.DB_CREDENTIALS);
 
 // console.log(process.env.DB_CREDENTIALS);
+const pg = require('pg');
 
 module.exports = {
   // HOST,
@@ -11,6 +12,7 @@ module.exports = {
   // DB,
   PORT: 5432,
   dialect: 'postgres',
+  dialectModule: pg,
   pool: {
     max: 5,
     min: 0,

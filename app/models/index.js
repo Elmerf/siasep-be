@@ -5,6 +5,7 @@ const sequelize = new Sequelize(
   process.env.DATABASE_URL,
   {
     dialect: config.dialect,
+    dialectModule: config.dialectModule,
     operatorsAliases: false,
     pool: {
       max: config.pool.max,
