@@ -124,7 +124,7 @@ exports.create = async (req, res) => {
     }
 
     if (file !== undefined) {
-      const uploadFile = await fs.readFile(`./tmp/uploads/${file.filename}`);
+      const uploadFile = await fs.readFile(`../../tmp/uploads/${file.filename}`);
       const token = await tokenParsed();
       const URI = new URL(`${msGraph}/me/drive/root:/siasep/${file.filename}:/content`);
       const result = await fetch(URI, {
@@ -134,7 +134,7 @@ exports.create = async (req, res) => {
         },
         body: uploadFile,
       });
-      fs.unlink(`./tmp/uploads/${file.filename}`);
+      fs.unlink(`../../tmp/uploads/${file.filename}`);
       const info = (await result.json());
       file_path = info.webUrl;
       file_id = info.id;
@@ -307,7 +307,7 @@ exports.update = async (req, res) => {
         URI = new URL(`${msGraph}/me/drive/root:/siasep/${file.filename}:/content`);
       }
 
-      const uploadFile = await fs.readFile(`./tmp/uploads/${file.filename}`);
+      const uploadFile = await fs.readFile(`../../tmp/uploads/${file.filename}`);
       const result = await fetch(URI, {
         method: 'PUT',
         headers: {
@@ -315,7 +315,7 @@ exports.update = async (req, res) => {
         },
         body: uploadFile,
       });
-      fs.unlink(`./tmp/uploads/${file.filename}`);
+      fs.unlink(`../../tmp/uploads/${file.filename}`);
       const info = (await result.json());
       file_path = info.webUrl;
       file_id = info.id;
