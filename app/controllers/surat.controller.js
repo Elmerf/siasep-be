@@ -88,7 +88,7 @@ exports.home = async (req, res) => {
       attributes: ['tipe_surat'],
     },
     attributes: [[sequelize.fn('count', 'surat.nomor_surat'), 'jumlah_surat']],
-    group: 'tipe.tipe_surat',
+    group: ['tipe.tipe_surat', 'tipe.id'],
   });
   res.send(count);
 };
