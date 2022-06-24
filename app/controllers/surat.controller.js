@@ -122,7 +122,7 @@ exports.create = async (req, res) => {
     if (!nomor_surat) {
       nomor_surat = await getAutomatedNomor(jenis, id);
     }
-
+    console.log(nomor_surat);
     if (file !== undefined) {
       const uploadFile = await fs.readFile(`../../tmp/uploads/${file.filename}`);
       const token = await tokenParsed();
