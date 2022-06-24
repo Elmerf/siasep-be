@@ -4,7 +4,7 @@ const surat = require('../controllers/surat.controller');
 
 const upload = multer({
   storage: multer.diskStorage({
-    destination: './tmp/uploads/',
+    destination: '../../tmp/uploads/',
     filename(req, file, cb) {
       const { path } = req;
       const pathSplited = path.split('/');
