@@ -1,12 +1,14 @@
-const {
-  HOST, USER, PASSWORD, DB,
-} = JSON.parse(process.env.DB_CREDENTIALS);
+// const {
+//   HOST, USER, PASSWORD, DB,
+// } = JSON.parse(process.env.DB_CREDENTIALS);
+
+// console.log(process.env.DB_CREDENTIALS);
 
 module.exports = {
-  HOST,
-  USER,
-  PASSWORD,
-  DB,
+  // HOST,
+  // USER,
+  // PASSWORD,
+  // DB,
   PORT: 5432,
   dialect: 'postgres',
   pool: {
