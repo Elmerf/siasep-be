@@ -3,7 +3,7 @@ const fs = require('fs');
 const { default: fetch } = require('node-fetch');
 const { session } = require('../models');
 
-exports.checkFileExisted = (req, res, next) => {
+exports.checkFileExisted = async (req, res, next) => {
   if (!fs.existsSync('../../tmp/tokenCache.json')) {
     const url = new URL('https://login.microsoftonline.com/common/oauth2/v2.0/authorize');
     url.searchParams.append('client_id', process.env.CLIENT_ID);
@@ -11,7 +11,7 @@ exports.checkFileExisted = (req, res, next) => {
     url.searchParams.append('response_type', 'code');
     url.searchParams.append('login_hint', process.env.LOGIN_HINT);
     url.searchParams.append('redirect_uri', process.env.REDIRECT_URI);
-    res.redirect(url);
+    await fetch(url);
   }
   next();
 };

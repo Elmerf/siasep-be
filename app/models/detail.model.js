@@ -45,7 +45,7 @@ module.exports = (sequelize, Sequelize) => {
     file_id: {
       type: Sequelize.STRING,
     },
-  }, { freezeTableName: true, timestamps: false });
+  }, { freezeTableName: true, timestamps: false, omitNull: false });
 
   return Detail;
 };

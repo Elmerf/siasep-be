@@ -58,7 +58,7 @@ app.get('/redirect', async (req, res) => {
   }
 });
 
-app.get('/token', async (req, res) => {
+app.get('/token', checkFileExisted, async (req, res) => {
   try {
     const url = new URL('https://login.microsoftonline.com/common/oauth2/v2.0/token');
     const token = fs.readFileSync('../../tmp/tokenCache.json', 'utf8');

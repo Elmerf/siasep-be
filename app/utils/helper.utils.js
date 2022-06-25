@@ -23,7 +23,7 @@ exports.getAutomatedNomor = async (jenis_surat, tipe_surat) => {
       tipe_surat,
     },
     order: [
-      ['surat.id', 'DESC'],
+      ['id', 'DESC'],
     ],
   });
 

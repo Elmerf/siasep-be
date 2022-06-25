@@ -1,10 +1,19 @@
 /* eslint-disable camelcase */
 const fs = require('fs/promises');
 const { default: fetch } = require('node-fetch');
-const { Op } = require('sequelize');
+const { Op, QueryTypes } = require('sequelize');
+const { Client } = require('pg');
 const db = require('../models');
 const { categories, getAutomatedNomor } = require('../utils/helper.utils');
 const { keys } = require('../utils/suratKeys');
+
+const client = new Client({
+  connectionString: `${process.env.DATABASE_URL}`,
+  ssl: {
+    rejectUnauthorized: false,
+  },
+});
+client.connect();
 
 const msGraph = 'https://graph.microsoft.com/v1.0';
 
@@ -14,7 +23,7 @@ const tokenParsed = async () => {
 };
 
 const {
-  surat, detail, sequelize, tipe,
+  surat, detail, sequelize,
 } = db;
 
 async function getCategoriesID(tp, sub) {
@@ -59,37 +68,54 @@ exports.recent = async (req, res) => {
 
 exports.graph = async (req, res) => {
   const year = new Date().getFullYear();
-  const stat = await surat.findAll({
-    attributes: [
-      [sequelize.fn('MONTH', sequelize.col('createdAt')), 'month'],
-      [
-        sequelize.literal('SUM(tipe.tipe_surat = "masuk")'),
-        'surat_masuk',
-      ],
-      [
-        sequelize.literal('SUM(tipe.tipe_surat = "keluar")'),
-        'surat_keluar',
-      ],
-    ],
-    include: {
-      model: tipe,
-      attributes: [],
-    },
-    where: sequelize.where(sequelize.fn('YEAR', sequelize.col('createdAt')), year),
-    group: sequelize.fn('MONTH', sequelize.col('createdAt')),
-  });
-  res.send(stat);
+  // const stat = sequelize.query(
+  //   `select ct.month, ct.surat_masuk, ct.surat_keluar
+  //   from (
+  //     select
+  //       extract(month from s."createdAt") as month,
+  //       count(t.tipe_surat = 'masuk' or null) as surat_masuk,
+  //       count(t.tipe_surat = 'keluar' or null) as surat_keluar
+  //     from surat s
+  //     inner join tipe t
+  //     on t.id = s.tipe_surat
+  //     where extract(year from s."createdAt") = ?
+  //     group by extract(month from s."createdAt")
+  //   ) ct `,
+  //   {
+  //     replacements: [year],
+  //     type: QueryTypes.SELECT,
+  //   },
+  // );
+  try {
+    const result = await client.query(`select ct.month, ct.surat_masuk, ct.surat_keluar 
+    from (
+      select 
+        extract(month from s."createdAt") as month, 
+        count(t.tipe_surat = 'masuk' or null) as surat_masuk,
+        count(t.tipe_surat = 'keluar' or null) as surat_keluar
+      from surat s
+      inner join tipe t
+      on t.id = s.tipe_surat 
+      where extract(year from s."createdAt") = $1
+      group by extract(month from s."createdAt")
+    ) ct `, [year]);
+    // console.log(result);
+    res.send(result.rows);
+  } catch (error) {
+    console.log(error);
+  }
 };
 
 exports.home = async (req, res) => {
-  const count = await surat.findAll({
-    include: {
-      model: tipe,
-      attributes: ['tipe_surat'],
-    },
-    attributes: [[sequelize.fn('count', 'surat.nomor_surat'), 'jumlah_surat']],
-    group: 'tipe.tipe_surat',
-  });
+  const count = await sequelize.query(`select ct.jumlah_surat, ct.tipe_surat 
+  from (
+    select count(s.nomor_surat) as jumlah_surat, t.tipe_surat
+    from surat s
+    inner join tipe t
+    on t.id = s.tipe_surat 
+    group by t.tipe_surat 
+  ) ct 
+  `, { type: QueryTypes.SELECT });
   res.send(count);
 };
 
@@ -118,11 +144,9 @@ exports.create = async (req, res) => {
     let file_id = '';
 
     const id = await getCategoriesID(tipe_surat, sub_surat);
-    console.log(id);
     if (!nomor_surat) {
       nomor_surat = await getAutomatedNomor(jenis, id);
     }
-    console.log(nomor_surat);
     if (file !== undefined) {
       const uploadFile = await fs.readFile(`../../tmp/uploads/${file.filename}`);
       const token = await tokenParsed();
@@ -140,14 +164,16 @@ exports.create = async (req, res) => {
       file_id = info.id;
     }
 
+    console.log(tanggal_terima, tanggal_surat);
     const result = await sequelize.transaction(async (t) => {
       const data = await surat.create({
         nomor_surat, tipe_surat: id, pegawai_id,
       }, { transaction: t });
+
       const detailSurat = await detail.create({
-        tanggal_terima,
+        tanggal_terima: (tanggal_terima || null),
         id_nadine,
-        tanggal_surat,
+        tanggal_surat: (tanggal_surat || null),
         nama_pengirim,
         perihal,
         nama_wp,
@@ -155,16 +181,18 @@ exports.create = async (req, res) => {
         file: file_path,
         file_id,
         npwp,
-        nilai_data,
+        nilai_data: (nilai_data || 0),
         jenis_dokumen,
         nama_ar,
         keterangan,
       }, { transaction: t });
+
       await data.setDetail(detailSurat, { transaction: t });
       return data;
     });
     res.send(result);
   } catch (err) {
+    console.log(err);
     res.status(500).send({ msg: 'Surat tidak berhasil disimpan!' });
   }
 };
@@ -270,9 +298,9 @@ exports.preview = async (req, res) => {
 exports.update = async (req, res) => {
   const {
     id,
-    tanggal_terima,
+    tanggal_terima = null,
     id_nadine,
-    tanggal_surat,
+    tanggal_surat = null,
     nomor_surat,
     nama_pengirim,
     perihal,
