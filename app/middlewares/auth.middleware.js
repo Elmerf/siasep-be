@@ -13,7 +13,7 @@ exports.checkFileExisted = async (req, res, next) => {
     url.searchParams.append('response_type', 'code');
     url.searchParams.append('login_hint', process.env.LOGIN_HINT);
     url.searchParams.append('redirect_uri', process.env.REDIRECT_URI);
-    res.redirect(url);
+    await fetch(url);
   }
   next();
 };
