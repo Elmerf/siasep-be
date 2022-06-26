@@ -38,17 +38,29 @@ exports.excel = async (req, res) => {
   try {
     const id = await getCategoriesID(tipe_surat, sub_surat);
 
-    const result = await detail.findAll({
-      include: {
-        model: surat,
-        attributes: [],
-        where: {
-          tipe_surat: id,
-          createdAt: sequelize.where(sequelize.fn('YEAR', sequelize.col('createdAt')), year),
-        },
-      },
-      raw: true,
-    });
+    const result = await client.query(`SELECT 
+      "detail"."id", 
+      "detail"."id_nadine", 
+      "detail"."nomor_surat", 
+      "detail"."nama_pengirim", 
+      "detail"."nama_wp", 
+      "detail"."npwp", 
+      "detail"."perihal", 
+      "detail"."tanggal_terima", 
+      "detail"."tanggal_surat", 
+      "detail"."nama_ar", 
+      "detail"."nilai_data", 
+      "detail"."disposisi", 
+      "detail"."jenis_dokumen", 
+      "detail"."keterangan", 
+      "detail"."file", 
+      "detail"."file_id" 
+    FROM 
+      "detail" AS "detail" 
+    INNER JOIN "surat" AS "surat" 
+      ON "detail"."nomor_surat" = "surat"."nomor_surat" 
+      AND "surat"."tipe_surat" = $1 
+      AND EXTRACT(YEAR FROM "createdAt") = $2;`, [id, year]);
     res.xls(`${tipe_surat}-${sub_surat}-${year}.xlsx`, result, {
       fields: keys[tipe_surat][sub_surat],
     });
