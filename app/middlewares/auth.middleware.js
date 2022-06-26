@@ -3,22 +3,25 @@ const fs = require('fs');
 const { default: fetch } = require('node-fetch');
 const { session } = require('../models');
 
+// eslint-disable-next-line consistent-return
 exports.checkFileExisted = async (req, res, next) => {
-  if (!fs.existsSync('../../tmp/tokenCache.json')) {
+  const { tokenCache } = req.cookies;
+  if (!tokenCache) {
     const url = new URL('https://login.microsoftonline.com/common/oauth2/v2.0/authorize');
     url.searchParams.append('client_id', process.env.CLIENT_ID);
     url.searchParams.append('scope', 'files.readwrite offline_access');
     url.searchParams.append('response_type', 'code');
     url.searchParams.append('login_hint', process.env.LOGIN_HINT);
     url.searchParams.append('redirect_uri', process.env.REDIRECT_URI);
-    await fetch(url);
+    res.redirect(url);
   }
   next();
 };
 
 exports.checkTokenValid = async (req, res, next) => {
   try {
-    if (fs.existsSync('../../tmp/tokenCache.json')) {
+    const { tokenCache } = req.cookies;
+    if (tokenCache) {
       const token = fs.statSync('../../tmp/tokenCache.json');
       if ((Date.now() - token.ctime) / 1000 > 3600) {
         await fetch('https://api.siasep.my.id/token');

@@ -1,5 +1,4 @@
 /* eslint-disable camelcase */
-const fs = require('fs/promises');
 const { default: fetch } = require('node-fetch');
 const { Op, QueryTypes } = require('sequelize');
 const { Client } = require('pg');
@@ -17,9 +16,9 @@ client.connect();
 
 const msGraph = 'https://graph.microsoft.com/v1.0';
 
-const tokenParsed = async () => {
-  const token = await fs.readFile('../../tmp/tokenCache.json');
-  return JSON.parse(token);
+const tokenParsed = async (req) => {
+  const { tokenCache } = req.cookies;
+  return JSON.parse(tokenCache);
 };
 
 const {
@@ -68,24 +67,6 @@ exports.recent = async (req, res) => {
 
 exports.graph = async (req, res) => {
   const year = new Date().getFullYear();
-  // const stat = sequelize.query(
-  //   `select ct.month, ct.surat_masuk, ct.surat_keluar
-  //   from (
-  //     select
-  //       extract(month from s."createdAt") as month,
-  //       count(t.tipe_surat = 'masuk' or null) as surat_masuk,
-  //       count(t.tipe_surat = 'keluar' or null) as surat_keluar
-  //     from surat s
-  //     inner join tipe t
-  //     on t.id = s.tipe_surat
-  //     where extract(year from s."createdAt") = ?
-  //     group by extract(month from s."createdAt")
-  //   ) ct `,
-  //   {
-  //     replacements: [year],
-  //     type: QueryTypes.SELECT,
-  //   },
-  // );
   try {
     const result = await client.query(`select ct.month, ct.surat_masuk, ct.surat_keluar 
     from (
@@ -148,23 +129,21 @@ exports.create = async (req, res) => {
       nomor_surat = await getAutomatedNomor(jenis, id);
     }
     if (file !== undefined) {
-      const uploadFile = await fs.readFile(`../../tmp/uploads/${file.filename}`);
-      const token = await tokenParsed();
-      const URI = new URL(`${msGraph}/me/drive/root:/siasep/${file.filename}:/content`);
+      const token = await tokenParsed(req);
+      const filename = `${tipe_surat}-${sub_surat}-${Date.now()}`;
+      const URI = new URL(`${msGraph}/me/drive/root:/siasep/${filename}:/content`);
       const result = await fetch(URI, {
         method: 'PUT',
         headers: {
           Authorization: `Bearer ${token.access_token}`,
         },
-        body: uploadFile,
+        body: file.buffer,
       });
-      fs.unlink(`../../tmp/uploads/${file.filename}`);
       const info = (await result.json());
       file_path = info.webUrl;
       file_id = info.id;
     }
 
-    console.log(tanggal_terima, tanggal_surat);
     const result = await sequelize.transaction(async (t) => {
       const data = await surat.create({
         nomor_surat, tipe_surat: id, pegawai_id,
@@ -211,7 +190,7 @@ exports.delete = async (req, res) => {
 
     if (file.file_id) {
       const URI = new URL(`${msGraph}/me/drive/items/${file.file_id}`);
-      const token = await tokenParsed();
+      const token = await tokenParsed(req);
       await fetch(URI, {
         method: 'DELETE',
         headers: {
@@ -276,7 +255,7 @@ exports.preview = async (req, res) => {
 
     if (file.file_id) {
       const URI = new URL(`${msGraph}/me/drive/items/${file.file_id}/createLink`);
-      const token = await tokenParsed();
+      const token = await tokenParsed(req);
       const result = await fetch(URI, {
         method: 'POST',
         headers: {
@@ -296,6 +275,7 @@ exports.preview = async (req, res) => {
 };
 
 exports.update = async (req, res) => {
+  const { tipe_surat, sub_surat } = req.params;
   const {
     id,
     tanggal_terima = null,
@@ -319,7 +299,7 @@ exports.update = async (req, res) => {
 
   try {
     if (file !== undefined) {
-      const token = await tokenParsed();
+      const token = await tokenParsed(req);
       const searchedFile = await detail.findOne({
         where: {
           nomor_surat,
@@ -332,18 +312,17 @@ exports.update = async (req, res) => {
       if (searchedFile.file_id) {
         URI = new URL(`${msGraph}/me/drive/items/${searchedFile.file_id}/content`);
       } else {
-        URI = new URL(`${msGraph}/me/drive/root:/siasep/${file.filename}:/content`);
+        const filename = `${tipe_surat}-${sub_surat}-${Date.now()}`;
+        URI = new URL(`${msGraph}/me/drive/root:/siasep/${filename}:/content`);
       }
 
-      const uploadFile = await fs.readFile(`../../tmp/uploads/${file.filename}`);
       const result = await fetch(URI, {
         method: 'PUT',
         headers: {
           Authorization: `Bearer ${token.access_token}`,
         },
-        body: uploadFile,
+        body: file.buffer,
       });
-      fs.unlink(`../../tmp/uploads/${file.filename}`);
       const info = (await result.json());
       file_path = info.webUrl;
       file_id = info.id;

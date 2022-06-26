@@ -3,14 +3,7 @@ const multer = require('multer');
 const surat = require('../controllers/surat.controller');
 
 const upload = multer({
-  storage: multer.diskStorage({
-    destination: '../../tmp/uploads/',
-    filename(req, file, cb) {
-      const { path } = req;
-      const pathSplited = path.split('/');
-      cb(null, `${pathSplited[1]}-${pathSplited[2]}-${Date.now()}.pdf`);
-    },
-  }),
+  storage: multer.memoryStorage(),
 });
 
 router.get('/recent', surat.recent);

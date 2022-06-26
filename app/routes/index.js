@@ -1,4 +1,4 @@
-const { checkTokenValid, checkFileExisted, checkSessionUUID } = require('../middlewares/auth.middleware');
+const { checkFileExisted, checkSessionUUID } = require('../middlewares/auth.middleware');
 const surat = require('./surat.route');
 const auth = require('./auth.route');
 const user = require('./user.route');
@@ -6,7 +6,7 @@ const user = require('./user.route');
 module.exports = (app) => {
   app.use('/surat', [
     checkFileExisted,
-    checkTokenValid,
+    // checkTokenValid,
     checkSessionUUID,
   //   (req, res, next) => {
   //   if (fs.existsSync('./tokenCache.json')) {

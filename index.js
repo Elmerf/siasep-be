@@ -2,7 +2,6 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const { default: fetch } = require('node-fetch');
-const fs = require('fs');
 const json2xls = require('json2xls');
 const cookieParser = require('cookie-parser');
 
@@ -25,9 +24,9 @@ db.sequelize.sync().then(() => {
   console.log('Drop & Re-sync db.');
 });
 
-const { checkTokenValid, checkFileExisted } = require('./app/middlewares/auth.middleware');
+const { checkFileExisted } = require('./app/middlewares/auth.middleware');
 
-app.get('/', checkFileExisted, checkTokenValid, async (req, res) => {
+app.get('/', checkFileExisted, async (req, res) => {
   try {
     res.send('Hello!');
   } catch (err) {
@@ -53,35 +52,12 @@ app.get('/redirect', async (req, res) => {
       }),
     });
     const data = JSON.stringify(await result.json());
-    fs.writeFileSync('../../tmp/tokenCache.json', data);
-    res.redirect('/');
-  }
-});
-
-app.get('/token', checkFileExisted, async (req, res) => {
-  try {
-    const url = new URL('https://login.microsoftonline.com/common/oauth2/v2.0/token');
-    const token = fs.readFileSync('../../tmp/tokenCache.json', 'utf8');
-    const tokenParsed = JSON.parse(token);
-
-    const result = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-      },
-      body: new URLSearchParams({
-        client_id: process.env.CLIENT_ID,
-        redirect_uri: process.env.REDIRECT_URI,
-        client_secret: process.env.CLIENT_SECRET,
-        refresh_token: tokenParsed.refresh_token,
-        grant_type: 'refresh_token',
-      }),
+    res.cookie('tokenCache', data, {
+      maxAge: 60 * 60 * 1000,
+      sameSite: 'lax',
+      secure: true,
     });
-    const data = JSON.stringify(await result.json());
-    fs.writeFileSync('../../tmp/tokenCache.json', data);
-    res.send({ msg: 'TOKEN REFRESHED' });
-  } catch (err) {
-    console.log(err);
+    res.redirect('/');
   }
 });
 
