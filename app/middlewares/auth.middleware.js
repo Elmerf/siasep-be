@@ -1,5 +1,4 @@
 /* eslint-disable camelcase */
-const fs = require('fs');
 const { default: fetch } = require('node-fetch');
 const { session } = require('../models');
 
@@ -16,21 +15,6 @@ exports.checkFileExisted = async (req, res, next) => {
     await fetch(url);
   }
   next();
-};
-
-exports.checkTokenValid = async (req, res, next) => {
-  try {
-    const { tokenCache } = req.cookies;
-    if (tokenCache) {
-      const token = fs.statSync('../../tmp/tokenCache.json');
-      if ((Date.now() - token.ctime) / 1000 > 3600) {
-        await fetch('https://api.siasep.my.id/token');
-      }
-    }
-    next();
-  } catch (err) {
-    console.log(err);
-  }
 };
 
 // eslint-disable-next-line consistent-return

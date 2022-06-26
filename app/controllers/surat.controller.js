@@ -18,6 +18,7 @@ const msGraph = 'https://graph.microsoft.com/v1.0';
 
 const tokenParsed = async (req) => {
   const { tokenCache } = req.cookies;
+  console.log(tokenCache);
   return JSON.parse(decodeURIComponent(tokenCache));
 };
 
