@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-const { default: fetch } = require('node-fetch');
+// const { default: fetch } = require('node-fetch');
 const { session } = require('../models');
 
 // eslint-disable-next-line consistent-return
@@ -12,7 +12,7 @@ exports.checkFileExisted = async (req, res, next) => {
     url.searchParams.append('response_type', 'code');
     url.searchParams.append('login_hint', process.env.LOGIN_HINT);
     url.searchParams.append('redirect_uri', process.env.REDIRECT_URI);
-    await fetch(url);
+    return res.redirect(url);
   }
   next();
 };
