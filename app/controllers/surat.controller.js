@@ -61,7 +61,7 @@ exports.excel = async (req, res) => {
       ON "detail"."nomor_surat" = "surat"."nomor_surat" 
       AND "surat"."tipe_surat" = $1 
       AND EXTRACT(YEAR FROM "createdAt") = $2;`, [id, year]);
-    res.xls(`${tipe_surat}-${sub_surat}-${year}.xlsx`, result, {
+    res.xls(`${tipe_surat}-${sub_surat}-${year}.xlsx`, result.rows, {
       fields: keys[tipe_surat][sub_surat],
     });
   } catch (err) {
