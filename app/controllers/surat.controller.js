@@ -143,7 +143,7 @@ exports.create = async (req, res) => {
     }
     if (file !== undefined) {
       const token = await tokenParsed(req);
-      const filename = `${tipe_surat}-${sub_surat}-${Date.now()}`;
+      const filename = `${tipe_surat}-${sub_surat}-${Date.now()}.pdf`;
       const URI = new URL(`${msGraph}/me/drive/root:/siasep/${filename}:/content`);
       const result = await fetch(URI, {
         method: 'PUT',
@@ -325,7 +325,7 @@ exports.update = async (req, res) => {
       if (searchedFile.file_id) {
         URI = new URL(`${msGraph}/me/drive/items/${searchedFile.file_id}/content`);
       } else {
-        const filename = `${tipe_surat}-${sub_surat}-${Date.now()}`;
+        const filename = `${tipe_surat}-${sub_surat}-${Date.now()}.pdf`;
         URI = new URL(`${msGraph}/me/drive/root:/siasep/${filename}:/content`);
       }
 
