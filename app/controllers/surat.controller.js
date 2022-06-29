@@ -291,9 +291,9 @@ exports.update = async (req, res) => {
   const { tipe_surat, sub_surat } = req.params;
   const {
     id,
-    tanggal_terima = null,
+    tanggal_terima,
     id_nadine,
-    tanggal_surat = null,
+    tanggal_surat,
     nomor_surat,
     nama_pengirim,
     perihal,
