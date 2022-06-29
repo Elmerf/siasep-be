@@ -358,14 +358,14 @@ exports.update = async (req, res) => {
         transaction: t,
       });
       const detailSurat = await detail.update({
-        tanggal_terima,
+        tanggal_terima: (tanggal_terima || null),
         id_nadine,
-        tanggal_surat,
+        tanggal_surat: (tanggal_surat || null),
         nama_pengirim,
         perihal,
         nama_wp,
         npwp,
-        nilai_data,
+        nilai_data: (nilai_data || null),
         jenis_dokumen,
         nama_ar,
         disposisi,
