@@ -79,21 +79,41 @@ exports.recent = async (req, res) => {
 };
 
 exports.graph = async (req, res) => {
-  const year = new Date().getFullYear();
+  const year = req.query.year || new Date().getFullYear();
+  const { month } = req.query;
+
   try {
-    const result = await client.query(`select ct.month, ct.surat_masuk, ct.surat_keluar 
-    from (
-      select 
-        extract(month from s."createdAt") as month, 
-        count(t.tipe_surat = 'masuk' or null) as surat_masuk,
-        count(t.tipe_surat = 'keluar' or null) as surat_keluar
-      from surat s
-      inner join tipe t
-      on t.id = s.tipe_surat 
-      where extract(year from s."createdAt") = $1
-      group by extract(month from s."createdAt")
-    ) ct `, [year]);
-    // console.log(result);
+    let result;
+    console.log(Number(month), Boolean(Number(month)));
+    if (Number(month)) {
+      result = await client.query(`select ct.day, ct.surat_masuk, ct.surat_keluar 
+        from (
+          select 
+            extract(day from s."createdAt") as day, 
+            count(t.tipe_surat = 'masuk' or null) as surat_masuk,
+            count(t.tipe_surat = 'keluar' or null) as surat_keluar
+          from surat s
+          inner join tipe t
+          on t.id = s.tipe_surat 
+          where extract(year from s."createdAt") = $1 and extract(month from s."createdAt") = $2
+          group by extract(day from s."createdAt")
+        ) ct`, [year, month]);
+    } else {
+      result = await client.query(`select ct.month, ct.surat_masuk, ct.surat_keluar 
+        from (
+          select 
+            extract(month from s."createdAt") as month, 
+            count(t.tipe_surat = 'masuk' or null) as surat_masuk,
+            count(t.tipe_surat = 'keluar' or null) as surat_keluar
+          from surat s
+          inner join tipe t
+          on t.id = s.tipe_surat 
+          where extract(year from s."createdAt") = $1
+          group by extract(month from s."createdAt")
+        ) ct `, [year]);
+    }
+    
+    console.log(result);
     res.send(result.rows);
   } catch (error) {
     console.log(error);
@@ -101,16 +121,38 @@ exports.graph = async (req, res) => {
 };
 
 exports.home = async (req, res) => {
-  const count = await sequelize.query(`select ct.jumlah_surat, ct.tipe_surat 
-  from (
-    select count(s.nomor_surat) as jumlah_surat, t.tipe_surat
-    from surat s
-    inner join tipe t
-    on t.id = s.tipe_surat 
-    group by t.tipe_surat 
-  ) ct 
-  `, { type: QueryTypes.SELECT });
-  res.send(count);
+  const todayMonth = new Date().getMonth() + 1;
+  const todayYear = new Date().getFullYear();
+
+  let count = [];
+
+  const resultAll = await sequelize.query(`select ct.jumlah_surat, ct.tipe_surat 
+   from (
+     select count(s.nomor_surat) as jumlah_surat, t.tipe_surat
+     from surat s
+     inner join tipe t
+     on t.id = s.tipe_surat 
+     group by t.tipe_surat 
+   ) ct 
+   `, { type: QueryTypes.SELECT });
+
+    resultAll.push({ jumlah_surat: resultAll.reduce((sum, val) => sum + Number(val.jumlah_surat), 0), jenis_surat: "semua" })
+
+   const resultThisMonth = (await client.query(`select ct.jumlah_surat, ct.tipe_surat 
+   from (
+     select count(s.nomor_surat) as jumlah_surat, t.tipe_surat
+     from surat s
+     inner join tipe t
+     on t.id = s.tipe_surat 
+     where extract("month" from s."createdAt") = $1 and extract("year" from s."createdAt") = $2
+     group by t.tipe_surat 
+   ) ct `, [ todayMonth, todayYear ])).rows;
+
+   resultThisMonth.push({ jumlah_surat: resultThisMonth.reduce((sum, val) => sum + Number(val.jumlah_surat), 0), jenis_surat: "semua" })
+  
+    count.push(resultThisMonth, resultAll);
+
+   res.send(count);
 };
 
 exports.create = async (req, res) => {
